@@ -26,11 +26,11 @@ while True:
             if prevCircle is not None:
                 if dist(chosen[0], chosen[1], prevCircle[0], prevCircle[1]) <= dist(i[0], i[1], prevCircle[0], prevCircle[1]):
                     chosen = i
-            # cv.circle(frame, (i[0], i[1]), 1, (0,100,100), 3)
-            # cv.circle(frame, (i[0], i[1]), i[2], (255,0,255), 3)
+            cv.circle(frame, (i[0], i[1]), 1, (0,100,100), 3)
+            cv.circle(frame, (i[0], i[1]), i[2], (255,0,255), 3)
 
-        cv.circle(frame, (chosen[0], chosen[1]), 1, (0,100,100), 3)
-        cv.circle(frame, (chosen[0], chosen[1]), chosen[2], (255,0,255), 3)
+        # cv.circle(frame, (chosen[0], chosen[1]), 1, (0,100,100), 3)
+        # cv.circle(frame, (chosen[0], chosen[1]), chosen[2], (255,0,255), 3)
         prevCircle = chosen
 
     newFrameTime = time.time()
