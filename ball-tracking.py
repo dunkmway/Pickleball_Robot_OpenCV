@@ -49,7 +49,7 @@ def Update_Process_Total(process):
 
 def Process_Frame(frame, frameWidth, minRadius, showCircle=False, showMask=False):
 	frame = imutils.resize(frame, width=frameWidth)
-	blurred = cv2.GaussianBlur(frame, (11, 11), 0)
+	# blurred = cv2.GaussianBlur(frame, (11, 11), 0)
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
 	# construct a mask for the color "green", then perform
@@ -83,10 +83,10 @@ def Process_Frame(frame, frameWidth, minRadius, showCircle=False, showMask=False
 				if showMask:
 					cv2.circle(mask, (int(x), int(y)), int(radius), (255, 0, 0), 1)
 					cv2.circle(mask, center, 2, (0, 0, 255), -1)
-			if showMask:
-				cv2.imshow('Mask', mask)
 			return frame, (x,y)
-		return frame, (-1, -1)
+		return frame, (-1,-1)
+	if showMask:
+		cv2.imshow('Mask', mask)
 	return frame, (-1, -1)
 
 def Output_Data(frame, displayCenter = False, displayFps = False, displayProcess = False, showFrame = False, showFps = False, showProcess = False):
