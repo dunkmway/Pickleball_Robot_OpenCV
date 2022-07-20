@@ -62,7 +62,7 @@ def Process_Frame(frame, frameWidth, minRadius, showCircle=False, showMask=False
 
 	# find contours in the mask and initialize the current
 	# (x, y) center of the ball
-	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	cnts = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 	cnts = imutils.grab_contours(cnts)
 	center = None
 	# only proceed if at least one contour was found
@@ -170,18 +170,15 @@ while True:
 		break
 	
 	frame, center = Process_Frame(frame, 600, 10, showCircle=False, showMask=False)
-	Output_Data(frame, 
+	Output_Data(
+		frame, 
 		displayCenter = True, 
 		displayFps = True, 
 		displayProcess = True, 
 		showFrame = False, 
 		showFps = False, 
-		showProcess = False)
-
-	# key = cv2.waitKey(1) & 0xFF
-	# # if the 'q' key is pressed, stop the loop
-	# if key == ord("q"):
-	# 	break
+		showProcess = False
+	)
 
 # if we are not using a video file, stop the camera video stream
 if not args.get("video", False):
