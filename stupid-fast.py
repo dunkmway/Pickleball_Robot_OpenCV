@@ -7,6 +7,7 @@ import numpy as np
 import argparse
 import cv2
 import time
+import sys
 
 prevFrameTime = 0
 newFrameTime = 0
@@ -48,7 +49,7 @@ def Update_Process_Total(process):
 	process_count += 1
 
 def Process_Frame(frame, frameWidth, minRadius, showCircle=False, showMask=False):
-	frame = imutils.resize(frame, width=frameWidth)
+	# frame = imutils.resize(frame, width=frameWidth)
 	# blurred = cv2.GaussianBlur(frame, (11, 11), 0)
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -61,10 +62,11 @@ def Process_Frame(frame, frameWidth, minRadius, showCircle=False, showMask=False
 
 	# find contours in the mask and initialize the current
 	# (x, y) center of the ball
-	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	cnts = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 	cnts = imutils.grab_contours(cnts)
 	center = None
 	# only proceed if at least one contour was found
+	pos = (-1, -1)
 	if len(cnts) > 0:
 		# find the largest contour in the mask, then use
 		# it to compute the minimum enclosing circle and
@@ -83,11 +85,11 @@ def Process_Frame(frame, frameWidth, minRadius, showCircle=False, showMask=False
 				if showMask:
 					cv2.circle(mask, (int(x), int(y)), int(radius), (255, 0, 0), 1)
 					cv2.circle(mask, center, 2, (0, 0, 255), -1)
-			return frame, (x,y)
-		return frame, (-1,-1)
+			pos = (x,y)
 	if showMask:
 		cv2.imshow('Mask', mask)
-	return frame, (-1, -1)
+	return frame, pos	
+
 
 def Output_Data(frame, displayCenter = False, displayFps = False, displayProcess = False, showFrame = False, showFps = False, showProcess = False):
 	global prevFrameTime
@@ -99,18 +101,21 @@ def Output_Data(frame, displayCenter = False, displayFps = False, displayProcess
 	prevFrameTime = newFrameTime
 	fps = int(fps)
 	Update_FPS_Total(fps)
-	fpsStr = 'fps: ' + str(fps) + ' (min: ' + str(fps_min) + ', max: ' + str(fps_max) + ', avg: ' + str(fps_sum // fps_count) + ')'
+	fpsStr = 'fps: ' + str(fps).zfill(3) + ' (min: ' + str(fps_min).zfill(3) + ', max: ' + str(fps_max).zfill(3) + ', avg: ' + str(fps_sum // fps_count).zfill(3) + ')'
 
 	# calculate the process time
 	endProcessTime = time.time()
-	processTime = endProcessTime - beginProcessTime
+	processTime = (endProcessTime - beginProcessTime) * 1000
+	processTime = int(processTime)
 	Update_Process_Total(processTime)
-	processStr = 'process: %.3f'%processTime + ' (min: %.3f'%process_min + ', max: %.3f'%process_max + ', avg: %.3f'%(process_sum / process_count) + ')'
+	processStr = 'process: ' + str(processTime).zfill(3) + ' (min: ' + str(process_min).zfill(3) + ', max: ' + str(process_max).zfill(3) + ', avg: ' + str(process_sum // process_count).zfill(3) + ')'
 
-	positionStr = '(%.2f'%center[0] + ', %.2f'%center[1] + ')'
+	positionStr = 'pos: (' + str(int(center[0])).zfill(4) + ', ' + str(int(center[1])).zfill(4) + ')'
 
-	print((positionStr if displayCenter else '') + ' ' + (fpsStr if displayFps else '') + ' ' + (processStr if displayProcess else ''), end='\r')
-	#print((positionStr if displayCenter else '') + ' ' + (fpsStr if displayFps else '') + ' ' + (processStr if displayProcess else ''))
+	print((positionStr if displayCenter else '') + '\n' + (fpsStr if displayFps else '') + '\n' + (processStr if displayProcess else ''))
+	sys.stdout.write("\033[F")
+	sys.stdout.write("\033[F")
+	sys.stdout.write("\033[F")
 
 	if showFrame:
 		# flip the frame to mirror movement
@@ -136,8 +141,8 @@ args = vars(ap.parse_args())
 # define the lower and upper boundaries of the "green"
 # ball in the HSV color space, then initialize the
 # list of tracked points
-greenLower = (27, 0, 100)
-greenUpper = (38, 255, 255)
+greenLower = (27, 20, 20)
+greenUpper = (38, 235, 235)
 # if a video path was not supplied, grab the reference
 # to the webcam
 if not args.get("video", False):
@@ -148,26 +153,15 @@ else:
 # allow the camera or video file to warm up
 time.sleep(2.0)
 
-prevFrame = vs.read()
-frameNum = 0;
-sum = 0;
-counter = 0;
 # keep looping
+prevFrameTime = time.time()
 while True:
-	# grab the current frame
-	frame = vs.read()
-	t = time.time()
-	np.array_equal(frame, prevFrame)
-	length = time.time()
-	sum += length- t;
-	counter += 1
-	print(f"Current: {length - t:.3f}; Average: {sum / counter:.3f}", end = '\r')
-	if (np.array_equal(frame, prevFrame)):
-		continue;
-	prevFrame = frame
-
 	#keep track of processing time
 	beginProcessTime = time.time()
+
+	# grab the current frame
+	frame = vs.read()
+
 	# handle the frame from VideoCapture or VideoStream
 	frame = frame[1] if args.get("video", False) else frame
 	# if we are viewing a video and we did not grab a frame,
@@ -175,23 +169,16 @@ while True:
 	if frame is None:
 		break
 	
-	frame, center = Process_Frame(frame, 600, 5, showCircle=False, showMask=False)
-	Output_Data(frame, 
-		displayCenter = False, 
-		displayFps = False, 
-		displayProcess = False, 
+	frame, center = Process_Frame(frame, 600, 10, showCircle=False, showMask=False)
+	Output_Data(
+		frame, 
+		displayCenter = True, 
+		displayFps = True, 
+		displayProcess = True, 
 		showFrame = False, 
 		showFps = False, 
-		showProcess = False)
-
-	"""if (frameNum < 100):
-		cv2.imwrite(f"./images/{('000' + str(frameNum))[-3:]}.png", frame)
-		frameNum += 1"""
-
-	# key = cv2.waitKey(1) & 0xFF
-	# if the 'q' key is pressed, stop the loop
-	# if key == ord("q"):
-		# break
+		showProcess = False
+	)
 
 # if we are not using a video file, stop the camera video stream
 if not args.get("video", False):
