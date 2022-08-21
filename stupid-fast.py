@@ -104,7 +104,7 @@ def Output_Data(frame, index, displayCenter = False, displayFps = False, display
 	global newFrameTime
 
 	#calculate the fps
-	newFrameTime = time.time()
+	newFrameTime = time.perf_counter()
 	fps = 1/(newFrameTime - prevFrameTime)
 	prevFrameTime = newFrameTime
 	fps = int(fps)
@@ -113,7 +113,7 @@ def Output_Data(frame, index, displayCenter = False, displayFps = False, display
 	#fpsStr = 'fps: ' + str(fps).zfill(3) + ' (min: ' + str(fps_min).zfill(3) + ', max: ' + str(fps_max).zfill(3) + ', avg: ' + str(fps_sum // fps_count).zfill(3) + ')'
 
 	# calculate the process time
-	endProcessTime = time.time()
+	endProcessTime = time.perf_counter()
 	processTime = (endProcessTime - beginProcessTime) * 1000
 	processTime = int(processTime)
 	Update_Process_Total(processTime)
@@ -166,12 +166,12 @@ else:
 time.sleep(2.0)
 
 # keep looping
-prevFrameTime = time.time()
+prevFrameTime = time.perf_counter()
 iters = 0
-loop_start = time.time()
+loop_start = time.perf_counter()
 while iters < 30*10:
 	#keep track of processing time
-	#beginProcessTime = time.time()
+	#beginProcessTime = time.perf_counter()
 
 	# grab the current frame
 	frame = vs.read()
@@ -195,7 +195,7 @@ while iters < 30*10:
 	#	showProcess = False,
 	#)
 	iters += 1
-loop_end = time.time()
+loop_end = time.perf_counter()
 print(f"fps: {iters / (loop_end - loop_start)}, {iters}, {loop_start}, {loop_end}")
 
 # if we are not using a video file, stop the camera video stream
